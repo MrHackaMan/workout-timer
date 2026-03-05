@@ -23,9 +23,11 @@
 
         #player { width: 100%; height: 100%; border: none; }
 
+        /* Ensuring the set widget is part of the flow above the timer */
         .set-widget {
+            position: relative; /* Changed from absolute */
             background: #111; 
-            padding: 12px 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid #333; margin-bottom: 20px;
+            padding: 12px 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid #333; margin-bottom: 30px;
         }
         .set-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; font-weight: bold; margin-right: 5px; }
         .set-count { font-size: 24px; font-weight: 900; min-width: 30px; text-align: center; color: var(--green); }
@@ -88,8 +90,8 @@
         let player;
         
         const playlistIDs = [
-            'UUiYcA0gJzg855iSKMrX3oHg', // CoryxKenshin
-            'UU7_YxT-KID8kRbqZo7MyscQ'  // Markiplier
+            'UUiYcA0gJzg855iSKMrX3oHg', 
+            'UU7_YxT-KID8kRbqZo7MyscQ'
         ];
 
         var tag = document.createElement('script');
@@ -98,7 +100,6 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         function onYouTubeIframeAPIReady() {
-            // Initial load
             const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
             player = new YT.Player('player', {
                 height: '100%',
@@ -117,12 +118,11 @@
             });
         }
 
-        // The "Secret Sauce" update: Swaps playlists on every shuffle
         function shuffleVideo() {
             if (player) {
-                const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+                const randomPlaylist = playlistIDs[Math.floor(Math.random() * randomPlaylist = playlistIDs.length)];
                 player.loadPlaylist({
-                    list: randomPlaylist,
+                    list: playlistIDs[Math.floor(Math.random() * playlistIDs.length)],
                     listType: 'playlist',
                     index: Math.floor(Math.random() * 50)
                 });
@@ -131,7 +131,7 @@
         }
 
         function onPlayerError(event) {
-            shuffleVideo(); // If one fails, try a random jump again
+            shuffleVideo();
         }
 
         function updateSet(val) {
