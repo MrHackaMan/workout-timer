@@ -3,13 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eclipse Pro Timer</title>
+    <title>Eclipse Rest Station</title>
     <style>
         :root { --red: #ff3e3e; --bg: #000000; }
         body { margin: 0; background-color: var(--bg); color: white; font-family: sans-serif; height: 100vh; display: flex; overflow: hidden; }
+        
         .app-container { display: flex; width: 100%; height: 100vh; }
 
-        @media (orientation: landscape) {
+        /* MOBILE OPTIMIZATION (FITS ONE SCREEN) */
+        @media (max-width: 768px) {
+            .app-container { flex-direction: column; }
+            .video-wrapper { height: 30vh; width: 100%; }
+            .timer-card { height: 70vh; width: 100%; justify-content: flex-start; padding-top: 20px; }
+            
+            /* Smaller numbers for mobile */
+            input[type="text"] { font-size: 75px !important; width: 110px !important; }
+            .colon { font-size: 40px !important; }
+            
+            /* Slimmer buttons for mobile */
+            .btn-box { width: 85% !important; margin-top: 10px !important; gap: 6px !important; }
+            button.main-action { padding: 12px !important; font-size: 10px !important; }
+            .shuffle-btn { padding: 10px !important; font-size: 9px !important; }
+            
+            /* Smaller Set Widget */
+            .set-widget { top: 10px !important; right: 10px !important; padding: 6px !important; }
+            .set-count { font-size: 18px !important; }
+        }
+
+        /* DESKTOP VIEW (REMAINS THE SAME) */
+        @media (min-width: 769px) {
             .app-container { flex-direction: row; }
             .video-wrapper { flex: 3; border-right: 2px solid #111; }
             .timer-card { flex: 1.2; min-width: 450px; }
@@ -17,28 +39,27 @@
 
         .video-wrapper { background: #000; position: relative; }
         iframe { width: 100%; height: 100%; border: none; }
-        
-        /* Dimming REMOVED from .active .video-wrapper */
 
         .set-widget {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0,0,0,0.85); padding: 12px;
-            border-radius: 8px; display: flex; align-items: center; gap: 12px;
+            position: absolute; top: 15px; right: 15px;
+            background: rgba(0,0,0,0.85); padding: 10px;
+            border-radius: 8px; display: flex; align-items: center; gap: 10px;
             border: 1px solid #333; z-index: 100;
         }
         .set-count { font-size: 24px; font-weight: 900; color: #ffffff; min-width: 30px; text-align: center; }
-        .set-btn { background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 4px; cursor: pointer; padding: 5px 12px; font-weight: bold; }
+        .set-btn { background: #222; border: 1px solid #444; color: white; border-radius: 4px; padding: 8px 15px; font-weight: bold; cursor: pointer; }
 
         .timer-card { background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
+        .input-group { display: flex; align-items: center; justify-content: center; }
         input[type="text"] { 
             background: none; border: none; color: white; font-size: 110px; font-weight: 900; 
-            width: 180px; text-align: center; outline: none; font-family: inherit;
+            width: 170px; text-align: center; outline: none; font-family: inherit;
         }
-        .colon { font-size: 60px; font-weight: 900; color: #222; }
-        .active .colon { color: var(--red); text-shadow: 0 0 15px var(--red); }
+        .colon { font-size: 60px; font-weight: 900; color: #333; }
+        .active .colon { color: var(--red); text-shadow: 0 0 10px var(--red); }
 
-        .btn-box { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; width: 320px; }
+        .btn-box { display: flex; flex-direction: column; gap: 10px; margin-top: 25px; width: 340px; }
         button.main-action { 
             padding: 16px; border-radius: 8px; border: 1px solid #333; 
             background: none; color: #888; font-weight: 800; cursor: pointer;
@@ -46,23 +67,19 @@
         }
         .active .start-btn { border-color: var(--red); color: var(--red); }
         
-        .shuffle-box { margin-top: 20px; display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
+        .shuffle-box { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .shuffle-btn { 
-            background: #111; border: 1px solid #222; color: #555; 
-            padding: 12px; border-radius: 5px; cursor: pointer; 
-            font-size: 9px; font-weight: bold; text-transform: uppercase;
+            background: #111; border: 1px solid #222; color: #666; 
+            padding: 14px; border-radius: 5px; cursor: pointer; 
+            font-size: 10px; font-weight: bold; text-transform: uppercase;
         }
-        .shuffle-btn:hover { color: #fff; border-color: #666; }
 
         #overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 62, 62, 0.8); /* Semi-transparent red */
-            color: white; display: none; 
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 9999;
+            background: rgba(255, 62, 62, 0.9); color: white; display: none; 
+            flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
         }
-        #overlay h1 { font-size: 150px; margin: 0; font-weight: 900; text-shadow: 0 0 30px black; }
-        #overlay p { font-weight: bold; letter-spacing: 3px; }
+        #overlay h1 { font-size: 80px; margin: 0; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -72,16 +89,16 @@
             <div class="set-widget">
                 <span id="setCount" class="set-count">0</span>
                 <button class="set-btn" onclick="updateSet(1)">+</button>
-                <button class="set-btn" style="color:#444" onclick="updateSet(-1)">-</button>
+                <button class="set-btn" style="color:#555" onclick="updateSet(-1)">-</button>
             </div>
             <iframe id="player" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
 
         <div class="timer-card">
             <div class="input-group">
-                <input type="text" id="m" value="01" maxlength="2">
+                <input type="text" id="m" value="01" maxlength="2" inputmode="numeric">
                 <span class="colon">:</span>
-                <input type="text" id="s" value="00" maxlength="2">
+                <input type="text" id="s" value="00" maxlength="2" inputmode="numeric">
             </div>
             
             <div class="btn-box">
@@ -89,18 +106,15 @@
                 <button class="main-action" onclick="resetTimer()">Reset Timer</button>
                 
                 <div class="shuffle-box">
-                    <button class="shuffle-btn" onclick="shuffleVideo('PL3tRBEVW0hiBSFOFhTC5wt75P2BES0rAo')">Shuffle Markiplier</button>
-                    <button class="shuffle-btn" onclick="shuffleVideo('PL6ubiYaxclxB_4Ei0bNcT1sYrruqNAFE8')">Shuffle CoryxKenshin</button>
-                    <button class="shuffle-btn" onclick="shuffleVideo('PLE9uTCjAvNCw_cIelrB2-ab9GFUUkrBFZ')">Shuffle UFC Full Fights</button>
+                    <button class="shuffle-btn" onclick="shuffleVideo('PL3tRBEVW0hiBSFOFhTC5wt75P2BES0rAo')">Markiplier</button>
+                    <button class="shuffle-btn" onclick="shuffleVideo('PL6ubiYaxclxB_4Ei0bNcT1sYrruqNAFE8')">CoryxKenshin</button>
+                    <button class="shuffle-btn" onclick="shuffleVideo('PLE9uTCjAvNCw_cIelrB2-ab9GFUUkrBFZ')">UFC Full Fights</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="overlay" onclick="closeAlert()">
-        <h1>DONE</h1>
-        <p>CLICK ANYWHERE TO DISMISS</p>
-    </div>
+    <div id="overlay" onclick="closeAlert()"><h1>DONE</h1><p>TAP TO DISMISS</p></div>
 
     <script>
         let timer, running = false, secondsLeft = 60, sets = 0;
@@ -111,7 +125,7 @@
         }
 
         function shuffleVideo(playlistID) {
-            const randomIdx = Math.floor(Math.random() * 100) + 1;
+            const randomIdx = Math.floor(Math.random() * 80) + 1;
             document.getElementById('player').src = `https://www.youtube.com/embed/videoseries?list=${playlistID}&index=${randomIdx}&autoplay=1`;
         }
 
@@ -140,6 +154,8 @@
                 clearInterval(timer);
                 running = false;
                 document.getElementById('overlay').style.display = 'flex';
+                // Trigger mobile haptic feedback
+                if ("vibrate" in navigator) navigator.vibrate(500);
                 return;
             }
             secondsLeft--;
