@@ -11,23 +11,26 @@
 
         .video-wrapper { background: #000; flex: 4; padding: 30px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; }
         .video-container { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; border: 1px solid #222; background: #050505; position: relative; }
-        .timer-card { flex: 1.5; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #111; min-width: 350px; }
+        
+        .timer-card { flex: 1.5; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #111; min-width: 350px; padding: 20px; }
 
         @media (max-width: 768px) {
             .app-container { flex-direction: column; }
             .video-wrapper { height: 40vh; width: 100%; padding: 10px; }
-            .timer-card { height: 60vh; width: 100%; border-left: none; justify-content: flex-start; padding-top: 15px; }
+            .timer-card { height: 60vh; width: 100%; border-left: none; justify-content: flex-start; padding-top: 20px; }
             input[type="text"] { font-size: 80px !important; width: 120px !important; }
         }
 
         #player { width: 100%; height: 100%; border: none; }
 
         .set-widget {
-            position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.85); 
-            padding: 8px 12px; border-radius: 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; z-index: 100;
+            background: #111; 
+            padding: 12px 20px; border-radius: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid #333; margin-bottom: 20px;
         }
-        .set-count { font-size: 20px; font-weight: 900; min-width: 25px; text-align: center; color: var(--green); }
-        .set-btn { background: #222; border: 1px solid #444; color: white; border-radius: 8px; padding: 8px 14px; font-weight: bold; cursor: pointer; }
+        .set-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; font-weight: bold; margin-right: 5px; }
+        .set-count { font-size: 24px; font-weight: 900; min-width: 30px; text-align: center; color: var(--green); }
+        .set-btn { background: #222; border: 1px solid #444; color: white; border-radius: 8px; padding: 8px 16px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .set-btn:active { background: var(--green); color: black; }
 
         .input-group { display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         input[type="text"] { background: none; border: none; color: white; font-size: 110px; font-weight: 900; width: 170px; text-align: center; outline: none; }
@@ -50,16 +53,18 @@
     <div class="app-container" id="main-ui">
         <div class="video-wrapper">
             <div class="video-container">
-                <div class="set-widget">
-                    <button class="set-btn" onclick="updateSet(-1)">-</button>
-                    <span id="setCount" class="set-count">0</span>
-                    <button class="set-btn" onclick="updateSet(1)">+</button>
-                </div>
                 <div id="player"></div>
             </div>
         </div>
 
         <div class="timer-card">
+            <div class="set-widget">
+                <span class="set-label">Sets</span>
+                <button class="set-btn" onclick="updateSet(-1)">-</button>
+                <span id="setCount" class="set-count">0</span>
+                <button class="set-btn" onclick="updateSet(1)">+</button>
+            </div>
+
             <div class="input-group">
                 <input type="text" id="m" value="02" maxlength="2">
                 <span class="colon">:</span>
@@ -82,10 +87,9 @@
         let timer, running = false, secondsLeft = 120, sets = 0;
         let player;
         
-        // These are the "Uploads" playlist IDs for the creators
         const playlistIDs = [
-            'UUiYcA0gJzg855iSKMrX3oHg', // CoryxKenshin Uploads
-            'UU7_YxT-KID8kRbqZo7MyscQ'  // Markiplier Uploads
+            'UUiYcA0gJzg855iSKMrX3oHg', // CoryxKenshin
+            'UU7_YxT-KID8kRbqZo7MyscQ'  // Markiplier
         ];
 
         var tag = document.createElement('script');
@@ -94,12 +98,8 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         function onYouTubeIframeAPIReady() {
-            loadRandomPlaylist();
-        }
-
-        function loadRandomPlaylist() {
+            // Initial load
             const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
-            
             player = new YT.Player('player', {
                 height: '100%',
                 width: '100%',
@@ -107,29 +107,31 @@
                     'listType': 'playlist',
                     'list': randomPlaylist,
                     'autoplay': 1,
-                    'index': Math.floor(Math.random() * 50), // Start at a random spot in the recent 50
+                    'index': Math.floor(Math.random() * 50),
                     'modestbranding': 1
                 },
                 events: {
-                    'onReady': onPlayerReady,
+                    'onReady': (e) => e.target.setShuffle(true),
                     'onError': onPlayerError
                 }
             });
         }
 
-        function onPlayerReady(event) {
-            event.target.setShuffle(true);
-        }
-
+        // The "Secret Sauce" update: Swaps playlists on every shuffle
         function shuffleVideo() {
-            if (player && player.nextVideo) {
-                player.nextVideo();
+            if (player) {
+                const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+                player.loadPlaylist({
+                    list: randomPlaylist,
+                    listType: 'playlist',
+                    index: Math.floor(Math.random() * 50)
+                });
+                player.setShuffle(true);
             }
         }
 
         function onPlayerError(event) {
-            // Error 101/150 = Embedding blocked by owner. Skip it!
-            player.nextVideo();
+            shuffleVideo(); // If one fails, try a random jump again
         }
 
         function updateSet(val) {
