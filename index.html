@@ -10,28 +10,30 @@
         
         .app-container { display: flex; width: 100%; height: 100vh; }
 
-        /* MOBILE OPTIMIZATION (FITS ONE SCREEN) */
-        @media (max-width: 768px) {
+        /* MOBILE PORTRAIT (Vertical) */
+        @media (max-width: 768px) and (orientation: portrait) {
             .app-container { flex-direction: column; }
-            .video-wrapper { height: 30vh; width: 100%; }
-            .timer-card { height: 70vh; width: 100%; justify-content: flex-start; padding-top: 20px; }
-            
-            /* Smaller numbers for mobile */
+            .video-wrapper { height: 35vh; width: 100%; }
+            .timer-card { height: 65vh; width: 100%; justify-content: flex-start; padding-top: 20px; }
             input[type="text"] { font-size: 75px !important; width: 110px !important; }
-            .colon { font-size: 40px !important; }
-            
-            /* Slimmer buttons for mobile */
-            .btn-box { width: 85% !important; margin-top: 10px !important; gap: 6px !important; }
-            button.main-action { padding: 12px !important; font-size: 10px !important; }
-            .shuffle-btn { padding: 10px !important; font-size: 9px !important; }
-            
-            /* Smaller Set Widget */
-            .set-widget { top: 10px !important; right: 10px !important; padding: 6px !important; }
-            .set-count { font-size: 18px !important; }
+            .btn-box { width: 85% !important; }
         }
 
-        /* DESKTOP VIEW (REMAINS THE SAME) */
-        @media (min-width: 769px) {
+        /* MOBILE LANDSCAPE (Horizontal) */
+        @media (max-width: 930px) and (orientation: landscape) {
+            .app-container { flex-direction: row; }
+            .video-wrapper { flex: 1.5; height: 100vh; }
+            .timer-card { flex: 1; height: 100vh; padding: 5px; overflow-y: auto; justify-content: center; }
+            input[type="text"] { font-size: 50px !important; width: 80px !important; }
+            .colon { font-size: 30px !important; }
+            .btn-box { width: 90% !important; margin-top: 10px !important; gap: 4px !important; }
+            button.main-action { padding: 8px !important; font-size: 9px !important; }
+            .shuffle-btn { padding: 6px !important; font-size: 8px !important; }
+            .set-widget { top: 5px !important; right: 5px !important; padding: 4px !important; scale: 0.8; }
+        }
+
+        /* DESKTOP VIEW */
+        @media (min-width: 931px) {
             .app-container { flex-direction: row; }
             .video-wrapper { flex: 3; border-right: 2px solid #111; }
             .timer-card { flex: 1.2; min-width: 450px; }
@@ -96,7 +98,7 @@
 
         <div class="timer-card">
             <div class="input-group">
-                <input type="text" id="m" value="01" maxlength="2" inputmode="numeric">
+                <input type="text" id="m" value="02" maxlength="2" inputmode="numeric">
                 <span class="colon">:</span>
                 <input type="text" id="s" value="00" maxlength="2" inputmode="numeric">
             </div>
@@ -117,7 +119,7 @@
     <div id="overlay" onclick="closeAlert()"><h1>DONE</h1><p>TAP TO DISMISS</p></div>
 
     <script>
-        let timer, running = false, secondsLeft = 60, sets = 0;
+        let timer, running = false, secondsLeft = 120, sets = 0;
 
         function updateSet(val) {
             sets = Math.max(0, sets + val);
@@ -154,7 +156,6 @@
                 clearInterval(timer);
                 running = false;
                 document.getElementById('overlay').style.display = 'flex';
-                // Trigger mobile haptic feedback
                 if ("vibrate" in navigator) navigator.vibrate(500);
                 return;
             }
@@ -173,7 +174,7 @@
             running = false;
             document.getElementById('main-ui').classList.remove('active');
             document.getElementById('mainBtn').textContent = "Start Rest";
-            document.getElementById('m').value = "01"; 
+            document.getElementById('m').value = "02"; 
             document.getElementById('s').value = "00";
         }
     </script>
