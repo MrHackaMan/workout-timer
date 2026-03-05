@@ -10,7 +10,7 @@
         .app-container { display: flex; width: 100%; height: 100vh; }
 
         .video-wrapper { background: #000; flex: 4; padding: 30px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; position: relative; }
-        .video-container { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; border: 1px solid #222; background: #050505; }
+        .video-container { width: 100%; height: 100%; border-radius: 20px; overflow: hidden; border: 1px solid #222; background: #050505; position: relative; }
         .timer-card { flex: 1.5; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; border-left: 1px solid #111; min-width: 350px; }
 
         @media (max-width: 768px) {
@@ -20,7 +20,7 @@
             input[type="text"] { font-size: 80px !important; width: 120px !important; }
         }
 
-        iframe { width: 100%; height: 100%; border: none; }
+        #player { width: 100%; height: 100%; border: none; }
 
         .set-widget {
             position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.85); 
@@ -51,10 +51,11 @@
         <div class="video-wrapper">
             <div class="video-container">
                 <div class="set-widget">
+                    <button class="set-btn" onclick="updateSet(-1)">-</button>
                     <span id="setCount" class="set-count">0</span>
                     <button class="set-btn" onclick="updateSet(1)">+</button>
                 </div>
-                <iframe id="player" src="" allow="autoplay; fullscreen"></iframe>
+                <div id="player"></div>
             </div>
         </div>
 
@@ -79,31 +80,62 @@
 
     <script>
         let timer, running = false, secondsLeft = 120, sets = 0;
-        let playedIndices = [];
-
-        // Updated IDs (Verified for Embedding)
-        const IDs = [
-            'pY628jAtH-w', 'NAExCiZ6j38', 'WiEWpuOmYww', 'ZIfUsK_W24s', 
-            'mP0V_u8u6uL', 'Xp5tgiHYT2Q', '4ZAlBrCnkgA', 'X6vM0r8XhMc',
-            'wMEzzbb4UMQ', 'mYm_XIDp7vA', 'vIAnS3N0Uf4', 'e1wZ982AQjc'
+        let player;
+        
+        // These are the "Uploads" playlist IDs for the creators
+        const playlistIDs = [
+            'UUiYcA0gJzg855iSKMrX3oHg', // CoryxKenshin Uploads
+            'UU7_YxT-KID8kRbqZo7MyscQ'  // Markiplier Uploads
         ];
+
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            loadRandomPlaylist();
+        }
+
+        function loadRandomPlaylist() {
+            const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+            
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'listType': 'playlist',
+                    'list': randomPlaylist,
+                    'autoplay': 1,
+                    'index': Math.floor(Math.random() * 50), // Start at a random spot in the recent 50
+                    'modestbranding': 1
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.setShuffle(true);
+        }
+
+        function shuffleVideo() {
+            if (player && player.nextVideo) {
+                player.nextVideo();
+            }
+        }
+
+        function onPlayerError(event) {
+            // Error 101/150 = Embedding blocked by owner. Skip it!
+            player.nextVideo();
+        }
 
         function updateSet(val) {
             sets = Math.max(0, sets + val);
             document.getElementById('setCount').textContent = sets;
         }
-
-        function shuffleVideo() {
-            if (playedIndices.length === IDs.length) playedIndices = [];
-            let randomIndex;
-            do { randomIndex = Math.floor(Math.random() * IDs.length); } 
-            while (playedIndices.includes(randomIndex));
-            playedIndices.push(randomIndex);
-            
-            document.getElementById('player').src = `https://www.youtube.com/embed/${IDs[randomIndex]}?autoplay=1&modestbranding=1&rel=0`;
-        }
-
-        shuffleVideo();
 
         function toggleTimer() {
             if (running) {
