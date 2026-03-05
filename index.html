@@ -3,154 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="referrer" content="strict-origin-when-cross-origin">
-    <title>Eclipse Player</title>
+    <title>Eclipse Pro Timer</title>
     <style>
-        :root { --red: #ff3e3e; --bg: #050505; }
-        
-        body { 
-            margin: 0; background-color: var(--bg); color: white; 
-            font-family: "Aptos", "Inter", "Segoe UI", sans-serif; 
-            height: 100vh; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; overflow: hidden;
-            transition: background-color 0.5s ease;
-        }
+        :root { --red: #ff3e3e; --bg: #000000; }
+        body { margin: 0; background-color: var(--bg); color: white; font-family: sans-serif; height: 100vh; display: flex; overflow: hidden; }
+        .app-container { display: flex; width: 100%; height: 100vh; }
 
-        /* Main Container */
-        .app-container {
-            display: flex; flex-direction: column;
-            width: 100%; height: 100vh;
-            max-width: 1400px;
-            gap: 0;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-
-        /* Large Video Area */
-        .video-wrapper { 
-            flex: 3; 
-            background: #000; overflow: hidden;
-            position: relative;
-        }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* Sleek Timer Card */
-        .timer-card { 
-            flex: 1; background: linear-gradient(180deg, #000 0%, #0a0a0a 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border-top: 1px solid #1a1a1a; position: relative;
-            z-index: 10;
-        }
-
-        /* Timer UI */
-        .input-group { 
-            display: flex; align-items: center; justify-content: center; 
-            gap: 5px; opacity: 0.5; transition: all 0.4s ease;
-        }
-        .active .input-group { opacity: 1; transform: scale(1.1); }
-        
-        input[type="text"] { 
-            background: none; border: none; color: white; 
-            font-size: 80px; font-weight: 800; width: 120px;
-            text-align: center; outline: none; font-family: inherit;
-            text-shadow: 0 0 30px rgba(255,255,255,0.05);
-        }
-
-        .colon { font-size: 50px; font-weight: 800; color: #222; transition: color 0.3s; }
-        .active .colon { color: var(--red); }
-
-        /* Controls */
-        .btn-box { display: flex; gap: 10px; margin-top: 10px; }
-        button { 
-            padding: 12px 25px; border-radius: 30px; border: 1px solid #333; 
-            background: none; color: #555; font-weight: 700; cursor: pointer;
-            font-family: inherit; font-size: 11px; text-transform: uppercase;
-            letter-spacing: 2px; transition: 0.3s;
-        }
-        .start-btn { border-color: #333; }
-        .active .start-btn { border-color: var(--red); color: var(--red); box-shadow: 0 0 20px rgba(255, 62, 62, 0.1); }
-        .reset-btn:hover { color: #fff; border-color: #666; }
-
-        /* FULLSCREEN TAKEOVER */
-        #alert-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--red); color: white;
-            display: none; flex-direction: column; align-items: center;
-            justify-content: center; z-index: 999;
-            animation: pulse-red 0.6s infinite alternate;
-            cursor: pointer;
-        }
-
-        @keyframes pulse-red {
-            from { background-color: #ff3e3e; }
-            to { background-color: #a00000; }
-        }
-
-        #alert-overlay h1 { font-size: 20vw; margin: 0; font-weight: 900; letter-spacing: -5px; }
-        #alert-overlay p { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 8px; opacity: 0.8; }
-
-        /* PC Side-by-Side */
-        @media (min-width: 1000px) {
+        @media (orientation: landscape) {
             .app-container { flex-direction: row; }
-            .video-wrapper { flex: 4; }
-            .timer-card { flex: 1; border-top: none; border-left: 1px solid #1a1a1a; }
+            .video-wrapper { flex: 3; border-right: 2px solid #111; }
+            .timer-card { flex: 1.2; min-width: 450px; }
         }
+
+        .video-wrapper { background: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+        
+        /* Dimming REMOVED from .active .video-wrapper */
+
+        .set-widget {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.85); padding: 12px;
+            border-radius: 8px; display: flex; align-items: center; gap: 12px;
+            border: 1px solid #333; z-index: 100;
+        }
+        .set-count { font-size: 24px; font-weight: 900; color: #ffffff; min-width: 30px; text-align: center; }
+        .set-btn { background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 4px; cursor: pointer; padding: 5px 12px; font-weight: bold; }
+
+        .timer-card { background: #050505; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        input[type="text"] { 
+            background: none; border: none; color: white; font-size: 110px; font-weight: 900; 
+            width: 180px; text-align: center; outline: none; font-family: inherit;
+        }
+        .colon { font-size: 60px; font-weight: 900; color: #222; }
+        .active .colon { color: var(--red); text-shadow: 0 0 15px var(--red); }
+
+        .btn-box { display: flex; flex-direction: column; gap: 10px; margin-top: 30px; width: 320px; }
+        button.main-action { 
+            padding: 16px; border-radius: 8px; border: 1px solid #333; 
+            background: none; color: #888; font-weight: 800; cursor: pointer;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .active .start-btn { border-color: var(--red); color: var(--red); }
+        
+        .shuffle-box { margin-top: 20px; display: grid; grid-template-columns: 1fr; gap: 8px; width: 100%; }
+        .shuffle-btn { 
+            background: #111; border: 1px solid #222; color: #555; 
+            padding: 12px; border-radius: 5px; cursor: pointer; 
+            font-size: 9px; font-weight: bold; text-transform: uppercase;
+        }
+        .shuffle-btn:hover { color: #fff; border-color: #666; }
+
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 62, 62, 0.8); /* Semi-transparent red */
+            color: white; display: none; 
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999;
+        }
+        #overlay h1 { font-size: 150px; margin: 0; font-weight: 900; text-shadow: 0 0 30px black; }
+        #overlay p { font-weight: bold; letter-spacing: 3px; }
     </style>
 </head>
 <body>
 
     <div class="app-container" id="main-ui">
         <div class="video-wrapper">
-            <iframe id="player" 
-                src="https://www.youtube.com/embed/videoseries?list=PL3tRBEVW0hiBSFOFhTC5wt75P2BES0rAo&autoplay=1&mute=1&enablejsapi=1" 
-                referrerpolicy="strict-origin-when-cross-origin"
-                allow="autoplay; encrypted-media" 
-                allowfullscreen>
-            </iframe>
+            <div class="set-widget">
+                <span id="setCount" class="set-count">0</span>
+                <button class="set-btn" onclick="updateSet(1)">+</button>
+                <button class="set-btn" style="color:#444" onclick="updateSet(-1)">-</button>
+            </div>
+            <iframe id="player" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
 
-        <div class="timer-card" id="card">
+        <div class="timer-card">
             <div class="input-group">
-                <input type="text" id="m" value="01" inputmode="numeric" maxlength="2">
+                <input type="text" id="m" value="01" maxlength="2">
                 <span class="colon">:</span>
-                <input type="text" id="s" value="00" inputmode="numeric" maxlength="2">
+                <input type="text" id="s" value="00" maxlength="2">
             </div>
             
             <div class="btn-box">
-                <button class="reset-btn" onclick="resetTimer()">Reset</button>
-                <button class="start-btn" id="mainBtn" onclick="toggleTimer()">Start</button>
+                <button class="main-action start-btn" id="mainBtn" onclick="toggleTimer()">Start Rest</button>
+                <button class="main-action" onclick="resetTimer()">Reset Timer</button>
+                
+                <div class="shuffle-box">
+                    <button class="shuffle-btn" onclick="shuffleVideo('PL3tRBEVW0hiBSFOFhTC5wt75P2BES0rAo')">Shuffle Markiplier</button>
+                    <button class="shuffle-btn" onclick="shuffleVideo('PL6ubiYaxclxB_4Ei0bNcT1sYrruqNAFE8')">Shuffle CoryxKenshin</button>
+                    <button class="shuffle-btn" onclick="shuffleVideo('PLE9uTCjAvNCw_cIelrB2-ab9GFUUkrBFZ')">Shuffle UFC Full Fights</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="alert-overlay" onclick="closeAlert()">
+    <div id="overlay" onclick="closeAlert()">
         <h1>DONE</h1>
-        <p>Tap to Resume</p>
+        <p>CLICK ANYWHERE TO DISMISS</p>
     </div>
 
     <script>
-        let timer;
-        let running = false;
-        let secondsLeft = 60;
-        
-        const mInput = document.getElementById('m');
-        const sInput = document.getElementById('s');
-        const btn = document.getElementById('mainBtn');
-        const card = document.getElementById('card');
-        const overlay = document.getElementById('alert-overlay');
-        const mainUI = document.getElementById('main-ui');
+        let timer, running = false, secondsLeft = 60, sets = 0;
+
+        function updateSet(val) {
+            sets = Math.max(0, sets + val);
+            document.getElementById('setCount').textContent = sets;
+        }
+
+        function shuffleVideo(playlistID) {
+            const randomIdx = Math.floor(Math.random() * 100) + 1;
+            document.getElementById('player').src = `https://www.youtube.com/embed/videoseries?list=${playlistID}&index=${randomIdx}&autoplay=1`;
+        }
+
+        shuffleVideo('PL3tRBEVW0hiBSFOFhTC5wt75P2BES0rAo');
 
         function toggleTimer() {
             if (running) {
                 clearInterval(timer);
-                btn.textContent = "Resume";
                 running = false;
-                card.classList.remove('active');
+                document.getElementById('mainBtn').textContent = "Resume Rest";
+                document.getElementById('main-ui').classList.remove('active');
             } else {
-                secondsLeft = (parseInt(mInput.value || 0) * 60) + parseInt(sInput.value || 0);
+                let m = parseInt(document.getElementById('m').value) || 0;
+                let s = parseInt(document.getElementById('s').value) || 0;
+                secondsLeft = (m * 60) + s;
                 if (secondsLeft <= 0) return;
                 running = true;
-                btn.textContent = "Pause";
-                card.classList.add('active');
+                document.getElementById('mainBtn').textContent = "Pause Rest";
+                document.getElementById('main-ui').classList.add('active');
                 timer = setInterval(tick, 1000);
             }
         }
@@ -159,39 +139,26 @@
             if (secondsLeft <= 0) {
                 clearInterval(timer);
                 running = false;
-                showTakeover();
+                document.getElementById('overlay').style.display = 'flex';
                 return;
             }
             secondsLeft--;
-            mInput.value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-            sInput.value = (secondsLeft % 60).toString().padStart(2, '0');
-        }
-
-        function showTakeover() {
-            overlay.style.display = 'flex';
-            mainUI.style.opacity = '0.1';
-            mainUI.style.transform = 'scale(0.9)';
-            
-            // Vibration logic: 500ms vibrate, 200ms rest, 500ms vibrate
-            if ("vibrate" in navigator) {
-                navigator.vibrate([500, 200, 500]);
-            }
+            document.getElementById('m').value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+            document.getElementById('s').value = (secondsLeft % 60).toString().padStart(2, '0');
         }
 
         function closeAlert() {
-            overlay.style.display = 'none';
-            mainUI.style.opacity = '1';
-            mainUI.style.transform = 'scale(1)';
+            document.getElementById('overlay').style.display = 'none';
             resetTimer();
         }
 
         function resetTimer() {
             clearInterval(timer);
             running = false;
-            card.classList.remove('active');
-            btn.textContent = "Start";
-            mInput.value = "01"; sInput.value = "00";
-            mInput.style.color = "white"; sInput.style.color = "white";
+            document.getElementById('main-ui').classList.remove('active');
+            document.getElementById('mainBtn').textContent = "Start Rest";
+            document.getElementById('m').value = "01"; 
+            document.getElementById('s').value = "00";
         }
     </script>
 </body>
