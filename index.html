@@ -174,8 +174,10 @@
             running = false;
             document.getElementById('main-ui').classList.remove('active');
             document.getElementById('mainBtn').textContent = "Start Rest";
+            // FIXED: NOW RESETS TO 02:00 INSTEAD OF 01:00
             document.getElementById('m').value = "02"; 
             document.getElementById('s').value = "00";
+            secondsLeft = 120; 
         }
     </script>
 </body>
