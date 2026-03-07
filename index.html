@@ -7,131 +7,122 @@
     <style>
         :root { 
             --red: #ff3e3e; 
-            --bg: #050505; 
-            --card-bg: #111111;
+            --bg: #000000; 
             --green: #2ecc71; 
-            --border: #222;
+            --border: #1a1a1a;
+            --low-glow-red: rgba(255, 62, 62, 0.3);
+            --low-glow-green: rgba(46, 204, 113, 0.2);
         }
-        
+
         body { 
             margin: 0; 
-            background-color: var(--bg); 
+            background: var(--bg);
             color: white; 
-            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+            font-family: -apple-system, system-ui, sans-serif; 
             height: 100vh; 
-            overflow: hidden;
+            width: 100vw;
+            overflow: hidden; 
+            touch-action: manipulation;
         }
 
         .app-container { 
             display: flex; 
             width: 100%; 
             height: 100vh; 
-            background: var(--bg);
+            flex-direction: row; 
         }
 
-        /* Video Section */
         .video-wrapper { 
-            flex: 3; 
+            flex: 2; 
             padding: 20px; 
+            box-sizing: border-box; 
             display: flex; 
             align-items: center; 
             justify-content: center;
         }
+
         .video-container { 
             width: 100%; 
-            aspect-ratio: 16/9; 
-            border-radius: 20px; 
+            height: 100%; 
+            max-height: 90vh;
+            border-radius: 15px; 
             overflow: hidden; 
-            border: 1px solid var(--border);
+            border: 1px solid var(--border); 
+            background: #000; 
         }
+
         #player { width: 100%; height: 100%; border: none; }
 
-        /* Controls Section */
         .timer-card { 
-            flex: 1.5; 
+            flex: 1; 
+            background: #080808; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            padding: 20px;
-            border-left: 1px solid var(--border);
+            border-left: 1px solid var(--border); 
+            padding: 20px; 
+            min-width: 300px;
         }
 
-        /* Sets Widget */
         .set-widget {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background: #111;
-            padding: 12px 20px;
-            border-radius: 15px;
-            border: 1px solid var(--border);
-            margin-bottom: 20px;
-        }
-        .set-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #555; font-weight: 800; }
-        .set-count { font-size: 28px; font-weight: 900; min-width: 35px; text-align: center; color: var(--green); }
-        .set-btn { background: #222; border: 1px solid #444; color: white; border-radius: 10px; width: 40px; height: 40px; cursor: pointer; font-weight: bold; }
-
-        /* Timer - The Fix is Here */
-        .input-group { 
+            background: #111; 
+            padding: 8px 20px; 
+            border-radius: 100px; 
             display: flex; 
             align-items: center; 
-            justify-content: center; 
-            width: 100%;
-            max-width: 400px;
+            gap: 12px; 
+            border: 1px solid var(--border); 
             margin-bottom: 20px;
         }
-        input[type="text"] { 
-            background: none; 
-            border: none; 
-            color: white; 
-            font-size: 100px; /* Reduced for better fit */
-            font-weight: 900; 
-            width: 140px; 
-            text-align: center; 
-            outline: none; 
-        }
-        .colon { 
-            font-size: 60px; 
-            font-weight: 900; 
-            color: #222; 
-            padding-bottom: 10px;
-        }
-        .active .colon { color: var(--red); text-shadow: 0 0 20px var(--red); }
 
-        /* Buttons */
-        .btn-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+        .set-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #444; font-weight: 800; }
+        .set-count { font-size: 24px; font-weight: 900; min-width: 30px; text-align: center; color: var(--green); }
+        .set-btn { 
+            background: #1a1a1a; border: 1px solid #333; color: white; 
+            width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; 
+        }
+
+        .timer-display { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; }
+        .time-unit {
+            background: none; border: none; color: white; 
+            font-size: 56px; font-weight: 900; width: 75px; 
+            text-align: center; outline: none; font-variant-numeric: tabular-nums;
+        }
+        .colon { font-size: 40px; font-weight: 900; color: #222; margin: 0 2px; }
+        .active .colon { color: var(--red); text-shadow: 0 0 10px var(--red); }
+
+        .btn-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; }
         button.main-action { 
-            padding: 18px; 
-            border-radius: 15px; 
-            border: 1px solid #333; 
-            background: #0a0a0a; 
-            color: #fff; 
-            font-weight: 800; 
-            font-size: 11px; 
-            text-transform: uppercase; 
-            letter-spacing: 2px; 
-            cursor: pointer; 
+            padding: 16px; border-radius: 100px; border: 1px solid #333; 
+            background: #111; color: #fff; font-weight: 800; font-size: 10px; 
+            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; 
         }
-        .start-btn { border-color: var(--green) !important; color: var(--green) !important; }
-        .active .start-btn { border-color: var(--red) !important; color: var(--red) !important; }
-        
-        .nav-btn { background: #111; border: 1px solid #222; color: #666; padding: 15px; border-radius: 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+        .start-btn { background: var(--green) !important; color: #000 !important; border: none !important; }
+        .active .start-btn { background: var(--red) !important; color: white !important; }
+        .nav-btn { background: transparent; border: 1px solid #222; color: #555; padding: 12px; border-radius: 100px; font-size: 8px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
-        /* Mobile Fix for Cropping */
-        @media (max-width: 768px) {
+        @media (max-width: 600px) and (orientation: portrait) {
             .app-container { flex-direction: column; }
-            .video-wrapper { height: auto; padding: 10px; }
-            .timer-card { border-left: none; padding: 10px; justify-content: flex-start; }
-            
-            /* Responsive Font sizing to prevent distortion */
-            input[type="text"] { font-size: 22vw !important; width: 35vw !important; }
-            .colon { font-size: 15vw !important; }
-            
-            .btn-box { width: 90%; }
+            .video-wrapper { flex: 0 0 35%; padding: 10px; }
+            .timer-card { flex: 1; border-left: none; border-top: 1px solid var(--border); min-width: 100%; }
+            .time-unit { font-size: 60px; width: 80px; }
         }
 
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); color: white; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; }
+        @media (max-height: 500px) and (orientation: landscape) {
+            .video-wrapper { padding: 10px; }
+            .timer-card { padding: 10px; min-width: 240px; }
+            .time-unit { font-size: 45px; width: 60px; }
+            .set-widget { margin-bottom: 10px; padding: 5px 15px; }
+            .timer-display { margin-bottom: 15px; }
+            button.main-action { padding: 10px; }
+        }
+
+        #overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: var(--red); color: white; display: none; 
+            flex-direction: column; align-items: center; justify-content: center; z-index: 9999; 
+        }
     </style>
 </head>
 <body>
@@ -151,25 +142,29 @@
                 <button class="set-btn" onclick="updateSet(1)">+</button>
             </div>
 
-            <div class="input-group">
-                <input type="text" id="m" value="02" maxlength="2">
+            <div class="timer-display">
+                <input type="text" class="time-unit" id="m" value="02" maxlength="2">
                 <span class="colon">:</span>
-                <input type="text" id="s" value="00" maxlength="2">
+                <input type="text" class="time-unit" id="s" value="00" maxlength="2">
             </div>
             
             <div class="btn-box">
                 <button class="main-action start-btn" id="mainBtn" onclick="toggleTimer()">Start Rest</button>
-                <button class="nav-btn" onclick="resetTimer()">Reset Timer</button>
+                <button class="main-action" onclick="resetTimer()">Reset Timer</button>
                 <button class="nav-btn" onclick="shuffleVideo()">Next Video</button>
             </div>
         </div>
     </div>
 
-    <div id="overlay" onclick="closeAlert()"><h1>DONE</h1><p>TAP TO RETURN</p></div>
+    <div id="overlay" onclick="closeAlert()">
+        <h1 style="font-size: 60px; font-weight: 900; margin: 0;">DONE</h1>
+        <p style="font-weight: 800; letter-spacing: 5px; opacity: 0.8; margin-top: 10px;">TAP TO DISMISS</p>
+    </div>
 
     <script>
         let timer, running = false, secondsLeft = 120, sets = 0;
         let player;
+        
         const playlistIDs = ['UUiYcA0gJzg855iSKMrX3oHg', 'UU7_YxT-KID8kRbqZo7MyscQ'];
 
         var tag = document.createElement('script');
@@ -181,22 +176,36 @@
             const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
             player = new YT.Player('player', {
                 height: '100%', width: '100%',
-                playerVars: { 'listType': 'playlist', 'list': randomPlaylist, 'autoplay': 1, 'index': Math.floor(Math.random() * 50), 'modestbranding': 1 },
-                events: { 'onReady': (e) => e.target.setShuffle(true), 'onError': onPlayerError }
+                playerVars: {
+                    'listType': 'playlist', 'list': randomPlaylist,
+                    'autoplay': 1, 'index': Math.floor(Math.random() * 50),
+                    'modestbranding': 1, 'origin': window.location.origin,
+                    'vq': 'highres' // Suggested parameter for high quality
+                },
+                events: { 
+                    'onReady': (e) => {
+                        e.target.setShuffle(true);
+                        e.target.setPlaybackQuality('highres'); // Forces highest available
+                    }, 
+                    'onStateChange': (e) => {
+                        if (e.data === YT.PlayerState.PLAYING) {
+                            e.target.setPlaybackQuality('highres');
+                        }
+                    },
+                    'onError': () => shuffleVideo() 
+                }
             });
         }
 
         function shuffleVideo() {
             if (player) {
-                player.loadPlaylist({
-                    list: playlistIDs[Math.floor(Math.random() * playlistIDs.length)],
-                    listType: 'playlist', index: Math.floor(Math.random() * 50)
-                });
+                const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+                player.loadPlaylist({ list: randomPlaylist, listType: 'playlist', index: Math.floor(Math.random() * 50) });
                 player.setShuffle(true);
+                // Quality will re-trigger on state change
             }
         }
 
-        function onPlayerError() { shuffleVideo(); }
         function updateSet(val) { sets = Math.max(0, sets + val); document.getElementById('setCount').textContent = sets; }
 
         function toggleTimer() {
@@ -207,7 +216,8 @@
             } else {
                 let m = parseInt(document.getElementById('m').value) || 0;
                 let s = parseInt(document.getElementById('s').value) || 0;
-                secondsLeft = (m * 60) + s; running = true;
+                secondsLeft = (m * 60) + s;
+                running = true;
                 document.getElementById('mainBtn').textContent = "Pause Rest";
                 document.getElementById('main-ui').classList.add('active');
                 timer = setInterval(tick, 1000);
@@ -215,17 +225,14 @@
         }
 
         function tick() {
-            if (secondsLeft <= 0) {
-                clearInterval(timer); running = false;
-                document.getElementById('overlay').style.display = 'flex';
-                return;
-            }
+            if (secondsLeft <= 0) { clearInterval(timer); running = false; document.getElementById('overlay').style.display = 'flex'; return; }
             secondsLeft--;
             document.getElementById('m').value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
             document.getElementById('s').value = (secondsLeft % 60).toString().padStart(2, '0');
         }
 
         function closeAlert() { document.getElementById('overlay').style.display = 'none'; resetTimer(); }
+
         function resetTimer() {
             clearInterval(timer); running = false;
             document.getElementById('main-ui').classList.remove('active');
