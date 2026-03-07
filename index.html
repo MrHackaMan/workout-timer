@@ -6,139 +6,75 @@
     <title>Eclipse Rest Station</title>
     <style>
         :root { 
-            --red: #ff3e3e; 
-            --bg: #000000; 
-            --green: #2ecc71; 
-            --border: #1a1a1a;
-            --low-glow-red: rgba(255, 62, 62, 0.3);
-            --low-glow-green: rgba(46, 204, 113, 0.2);
+            --red: #ff3e3e; --bg: #000000; --green: #2ecc71; --border: #1a1a1a;
         }
 
         body { 
-            margin: 0; 
-            background: var(--bg);
-            color: white; 
+            margin: 0; background: var(--bg); color: white; 
             font-family: -apple-system, system-ui, sans-serif; 
-            height: 100vh; 
-            width: 100vw;
-            overflow: hidden; 
+            height: 100vh; width: 100vw; overflow: hidden; 
             touch-action: manipulation;
         }
 
-        .app-container { 
-            display: flex; 
-            width: 100%; 
-            height: 100vh; 
-            flex-direction: row; 
-        }
+        .app-container { display: flex; width: 100%; height: 100vh; flex-direction: row; }
 
         .video-wrapper { 
-            flex: 2; 
-            padding: 20px; 
-            box-sizing: border-box; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
+            flex: 2; padding: 20px; box-sizing: border-box; 
+            display: flex; align-items: center; justify-content: center;
+            transform: translateZ(0); /* Stability hack */
         }
 
         .video-container { 
-            width: 100%; 
-            height: 100%; 
-            max-height: 90vh;
-            border-radius: 15px; 
-            overflow: hidden; 
-            border: 1px solid var(--border); 
-            background: #000; 
+            width: 100%; height: 100%; max-height: 90vh;
+            border-radius: 15px; overflow: hidden; 
+            border: 1px solid var(--border); background: #000; 
         }
 
         #player { width: 100%; height: 100%; border: none; }
 
         .timer-card { 
-            flex: 1; 
-            background: #080808; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            border-left: 1px solid var(--border); 
-            padding: 20px; 
-            min-width: 320px; /* Reduced to fit more phones */
-            box-sizing: border-box;
+            flex: 1; background: #080808; display: flex; 
+            flex-direction: column; align-items: center; justify-content: center; 
+            border-left: 1px solid var(--border); padding: 20px; 
+            min-width: 320px; box-sizing: border-box;
         }
 
         .set-widget {
-            background: #111; 
-            padding: 8px 20px; 
-            border-radius: 100px; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            border: 1px solid var(--border); 
+            background: #111; padding: 8px 20px; border-radius: 100px; 
+            display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); 
             margin-bottom: 20px;
         }
 
-        .set-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #444; font-weight: 800; }
-        .set-count { font-size: 24px; font-weight: 900; min-width: 30px; text-align: center; color: var(--green); }
+        .set-count { font-size: 24px; font-weight: 900; color: var(--green); min-width: 30px; text-align: center; }
         .set-btn { 
             background: #1a1a1a; border: 1px solid #333; color: white; 
-            width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; 
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; 
             display: flex; align-items: center; justify-content: center;
         }
 
-        .timer-display { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            margin-bottom: 30px; 
-            width: 100%;
-        }
-
+        .timer-display { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; width: 100%; }
         .time-unit {
-            background: none; border: none; color: white; 
-            font-size: 56px; font-weight: 900; width: 75px; 
-            text-align: center; outline: none; font-variant-numeric: tabular-nums;
-            padding: 0;
+            background: none; border: none; color: white; font-size: 56px; 
+            font-weight: 900; width: 75px; text-align: center; outline: none; 
+            font-variant-numeric: tabular-nums; padding: 0;
         }
-
         .colon { font-size: 40px; font-weight: 900; color: #222; margin: 0 2px; }
         .active .colon { color: var(--red); text-shadow: 0 0 10px var(--red); }
 
         .btn-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; }
-        
         button.main-action { 
             padding: 16px; border-radius: 100px; border: 1px solid #333; 
             background: #111; color: #fff; font-weight: 800; font-size: 10px; 
             text-transform: uppercase; letter-spacing: 1px; cursor: pointer; 
         }
-        
         .start-btn { background: var(--green) !important; color: #000 !important; border: none !important; }
         .active .start-btn { background: var(--red) !important; color: white !important; }
-        .nav-btn { background: transparent; border: 1px solid #222; color: #555; padding: 12px; border-radius: 100px; font-size: 8px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
-        /* PORTRAIT FIX */
         @media (max-width: 600px) and (orientation: portrait) {
             .app-container { flex-direction: column; }
             .video-wrapper { flex: 0 0 35%; padding: 10px; }
-            .timer-card { 
-                flex: 1; 
-                border-left: none; 
-                border-top: 1px solid var(--border); 
-                width: 100%; 
-                min-width: 100%;
-                padding: 10px;
-            }
+            .timer-card { flex: 1; border-left: none; border-top: 1px solid var(--border); width: 100%; padding: 10px; }
             .time-unit { font-size: 52px; width: 70px; }
-            .btn-box { max-width: 80%; }
-        }
-
-        /* LANDSCAPE FIX */
-        @media (max-height: 500px) and (orientation: landscape) {
-            .video-wrapper { padding: 10px; }
-            .timer-card { padding: 10px; min-width: 260px; }
-            .time-unit { font-size: 45px; width: 60px; }
-            .set-widget { margin-bottom: 10px; }
-            .timer-display { margin-bottom: 15px; }
-            button.main-action { padding: 10px; }
         }
 
         #overlay { 
@@ -152,29 +88,23 @@
 
     <div class="app-container" id="main-ui">
         <div class="video-wrapper">
-            <div class="video-container">
-                <div id="player"></div>
-            </div>
+            <div class="video-container"><div id="player"></div></div>
         </div>
-
         <div class="timer-card">
             <div class="set-widget">
-                <span class="set-label">Sets</span>
                 <button class="set-btn" onclick="updateSet(-1)">−</button>
                 <span id="setCount" class="set-count">0</span>
                 <button class="set-btn" onclick="updateSet(1)">+</button>
             </div>
-
             <div class="timer-display">
                 <input type="text" class="time-unit" id="m" value="02" maxlength="2">
                 <span class="colon">:</span>
                 <input type="text" class="time-unit" id="s" value="00" maxlength="2">
             </div>
-            
             <div class="btn-box">
                 <button class="main-action start-btn" id="mainBtn" onclick="toggleTimer()">Start Rest</button>
                 <button class="main-action" onclick="resetTimer()">Reset Timer</button>
-                <button class="nav-btn" onclick="shuffleVideo()">Next Video</button>
+                <button class="main-action" style="background:transparent; color:#555; font-size:8px; border:1px solid #222;" onclick="shuffleVideo()">Next Video</button>
             </div>
         </div>
     </div>
@@ -188,7 +118,6 @@
         let timer, running = false, secondsLeft = 120, sets = parseInt(localStorage.getItem('restSets')) || 0;
         let player;
         
-        // Update display from saved sets
         document.getElementById('setCount').textContent = sets;
 
         const playlistIDs = ['UUiYcA0gJzg855iSKMrX3oHg', 'UU7_YxT-KID8kRbqZo7MyscQ'];
@@ -205,18 +134,13 @@
                 playerVars: {
                     'listType': 'playlist', 'list': randomPlaylist,
                     'autoplay': 1, 'index': Math.floor(Math.random() * 50),
-                    'modestbranding': 1, 'origin': window.location.origin,
-                    'vq': 'highres'
+                    'modestbranding': 1, 'origin': window.location.origin
                 },
                 events: { 
                     'onReady': (e) => {
                         e.target.setShuffle(true);
-                        e.target.setPlaybackQuality('highres');
-                    }, 
-                    'onStateChange': (e) => {
-                        if (e.data === YT.PlayerState.PLAYING) {
-                            e.target.setPlaybackQuality('highres');
-                        }
+                        // Suggest high quality once only to prevent refresh loops
+                        e.target.setPlaybackQuality('hd1080'); 
                     },
                     'onError': () => shuffleVideo() 
                 }
@@ -224,17 +148,16 @@
         }
 
         function shuffleVideo() {
-            if (player) {
+            if (player && player.loadPlaylist) {
                 const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
                 player.loadPlaylist({ list: randomPlaylist, listType: 'playlist', index: Math.floor(Math.random() * 50) });
-                player.setShuffle(true);
             }
         }
 
         function updateSet(val) { 
             sets = Math.max(0, sets + val); 
             document.getElementById('setCount').textContent = sets;
-            localStorage.setItem('restSets', sets); // Auto-saves progress
+            localStorage.setItem('restSets', sets);
         }
 
         function toggleTimer() {
@@ -255,11 +178,9 @@
 
         function tick() {
             if (secondsLeft <= 0) { 
-                clearInterval(timer); 
-                running = false; 
+                clearInterval(timer); running = false; 
                 document.getElementById('overlay').style.display = 'flex'; 
-                updateSet(1); // Auto-increment set when finished
-                return; 
+                updateSet(1); return; 
             }
             secondsLeft--;
             document.getElementById('m').value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
@@ -273,7 +194,6 @@
             document.getElementById('main-ui').classList.remove('active');
             document.getElementById('mainBtn').textContent = "Start Rest";
             document.getElementById('m').value = "02"; document.getElementById('s').value = "00";
-            secondsLeft = 120;
         }
     </script>
 </body>
