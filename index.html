@@ -62,7 +62,8 @@
             justify-content: center; 
             border-left: 1px solid var(--border); 
             padding: 20px; 
-            min-width: 300px;
+            min-width: 320px; /* Reduced to fit more phones */
+            box-sizing: border-box;
         }
 
         .set-widget {
@@ -80,40 +81,62 @@
         .set-count { font-size: 24px; font-weight: 900; min-width: 30px; text-align: center; color: var(--green); }
         .set-btn { 
             background: #1a1a1a; border: 1px solid #333; color: white; 
-            width: 30px; height: 30px; border-radius: 50%; font-size: 16px; cursor: pointer; 
+            width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
         }
 
-        .timer-display { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; }
+        .timer-display { 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            margin-bottom: 30px; 
+            width: 100%;
+        }
+
         .time-unit {
             background: none; border: none; color: white; 
             font-size: 56px; font-weight: 900; width: 75px; 
             text-align: center; outline: none; font-variant-numeric: tabular-nums;
+            padding: 0;
         }
+
         .colon { font-size: 40px; font-weight: 900; color: #222; margin: 0 2px; }
         .active .colon { color: var(--red); text-shadow: 0 0 10px var(--red); }
 
         .btn-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; }
+        
         button.main-action { 
             padding: 16px; border-radius: 100px; border: 1px solid #333; 
             background: #111; color: #fff; font-weight: 800; font-size: 10px; 
             text-transform: uppercase; letter-spacing: 1px; cursor: pointer; 
         }
+        
         .start-btn { background: var(--green) !important; color: #000 !important; border: none !important; }
         .active .start-btn { background: var(--red) !important; color: white !important; }
         .nav-btn { background: transparent; border: 1px solid #222; color: #555; padding: 12px; border-radius: 100px; font-size: 8px; font-weight: bold; text-transform: uppercase; cursor: pointer; }
 
+        /* PORTRAIT FIX */
         @media (max-width: 600px) and (orientation: portrait) {
             .app-container { flex-direction: column; }
             .video-wrapper { flex: 0 0 35%; padding: 10px; }
-            .timer-card { flex: 1; border-left: none; border-top: 1px solid var(--border); min-width: 100%; }
-            .time-unit { font-size: 60px; width: 80px; }
+            .timer-card { 
+                flex: 1; 
+                border-left: none; 
+                border-top: 1px solid var(--border); 
+                width: 100%; 
+                min-width: 100%;
+                padding: 10px;
+            }
+            .time-unit { font-size: 52px; width: 70px; }
+            .btn-box { max-width: 80%; }
         }
 
+        /* LANDSCAPE FIX */
         @media (max-height: 500px) and (orientation: landscape) {
             .video-wrapper { padding: 10px; }
-            .timer-card { padding: 10px; min-width: 240px; }
+            .timer-card { padding: 10px; min-width: 260px; }
             .time-unit { font-size: 45px; width: 60px; }
-            .set-widget { margin-bottom: 10px; padding: 5px 15px; }
+            .set-widget { margin-bottom: 10px; }
             .timer-display { margin-bottom: 15px; }
             button.main-action { padding: 10px; }
         }
@@ -162,9 +185,12 @@
     </div>
 
     <script>
-        let timer, running = false, secondsLeft = 120, sets = 0;
+        let timer, running = false, secondsLeft = 120, sets = parseInt(localStorage.getItem('restSets')) || 0;
         let player;
         
+        // Update display from saved sets
+        document.getElementById('setCount').textContent = sets;
+
         const playlistIDs = ['UUiYcA0gJzg855iSKMrX3oHg', 'UU7_YxT-KID8kRbqZo7MyscQ'];
 
         var tag = document.createElement('script');
@@ -180,12 +206,12 @@
                     'listType': 'playlist', 'list': randomPlaylist,
                     'autoplay': 1, 'index': Math.floor(Math.random() * 50),
                     'modestbranding': 1, 'origin': window.location.origin,
-                    'vq': 'highres' // Suggested parameter for high quality
+                    'vq': 'highres'
                 },
                 events: { 
                     'onReady': (e) => {
                         e.target.setShuffle(true);
-                        e.target.setPlaybackQuality('highres'); // Forces highest available
+                        e.target.setPlaybackQuality('highres');
                     }, 
                     'onStateChange': (e) => {
                         if (e.data === YT.PlayerState.PLAYING) {
@@ -202,11 +228,14 @@
                 const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
                 player.loadPlaylist({ list: randomPlaylist, listType: 'playlist', index: Math.floor(Math.random() * 50) });
                 player.setShuffle(true);
-                // Quality will re-trigger on state change
             }
         }
 
-        function updateSet(val) { sets = Math.max(0, sets + val); document.getElementById('setCount').textContent = sets; }
+        function updateSet(val) { 
+            sets = Math.max(0, sets + val); 
+            document.getElementById('setCount').textContent = sets;
+            localStorage.setItem('restSets', sets); // Auto-saves progress
+        }
 
         function toggleTimer() {
             if (running) {
@@ -225,7 +254,13 @@
         }
 
         function tick() {
-            if (secondsLeft <= 0) { clearInterval(timer); running = false; document.getElementById('overlay').style.display = 'flex'; return; }
+            if (secondsLeft <= 0) { 
+                clearInterval(timer); 
+                running = false; 
+                document.getElementById('overlay').style.display = 'flex'; 
+                updateSet(1); // Auto-increment set when finished
+                return; 
+            }
             secondsLeft--;
             document.getElementById('m').value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
             document.getElementById('s').value = (secondsLeft % 60).toString().padStart(2, '0');
