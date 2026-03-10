@@ -3,198 +3,869 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eclipse Rest Station</title>
+    <title>REST // STATION</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --red: #ff3e3e; --bg: #000000; --green: #2ecc71; --border: #1a1a1a;
+        :root {
+            --bg:       #0a0a0a;
+            --surface:  #111111;
+            --card:     #191919;
+            --border:   #272727;
+            --red:      #cc1a22;
+            --red-hi:   #e8212e;
+            --amber:    #e07b00;
+            --gold:     #f0a500;
+            --white:    #f0ede8;
+            --dim:      #7a7570;
+            --faint:    #333;
         }
 
-        body { 
-            margin: 0; background: var(--bg); color: white; 
-            font-family: -apple-system, system-ui, sans-serif; 
-            height: 100vh; width: 100vw; overflow: hidden; 
-            touch-action: manipulation;
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            background: var(--bg);
+            color: var(--white);
+            font-family: 'Barlow Condensed', sans-serif;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
         }
 
-        .app-container { display: flex; width: 100%; height: 100vh; flex-direction: row; }
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           BACKGROUND TEXTURE
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .bg-layer {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            /* Subtle diagonal grid — very P5 */
+            background-image:
+                repeating-linear-gradient(-30deg,
+                    transparent 0px, transparent 34px,
+                    rgba(200,20,30,0.025) 34px, rgba(200,20,30,0.025) 35px),
+                repeating-linear-gradient(60deg,
+                    transparent 0px, transparent 34px,
+                    rgba(200,20,30,0.015) 34px, rgba(200,20,30,0.015) 35px);
+        }
 
-        .video-wrapper { 
-            flex: 2; padding: 20px; box-sizing: border-box; 
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           LEFT EDGE BAR — animated P5 style
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .edge-bar {
+            position: fixed; top: 0; left: 0;
+            width: 6px; height: 100vh;
+            z-index: 100;
+            background: linear-gradient(to bottom, var(--red-hi) 0%, var(--red) 60%, var(--amber) 100%);
+        }
+        /* animated shimmer up the bar */
+        .edge-bar::after {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 6px; height: 40px;
+            background: rgba(255,255,255,0.35);
+            animation: bar-shimmer 3s ease-in-out infinite;
+            border-radius: 0 0 3px 3px;
+        }
+        @keyframes bar-shimmer {
+            0%   { top: 100%; opacity: 0; }
+            10%  { opacity: 1; }
+            90%  { opacity: 1; }
+            100% { top: -5%; opacity: 0; }
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           LAYOUT
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .app {
+            position: relative; z-index: 1;
+            display: flex;
+            height: 100vh;
+            padding-left: 6px;
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           VIDEO COLUMN
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .video-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 16px 14px 16px 12px;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        /* Header */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        /* Logo: "REST" in red skewed box + "// STATION" in dim */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+        .logo-tag {
+            background: var(--red);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 19px;
+            letter-spacing: 3px;
+            color: var(--white);
+            padding: 3px 16px 3px 10px;
+            clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+            position: relative;
+        }
+        /* Small amber underline on logo */
+        .logo-tag::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 12%;
+            height: 2px;
+            background: var(--gold);
+        }
+        .logo-rest {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 19px;
+            letter-spacing: 3px;
+            color: var(--dim);
+            padding-left: 7px;
+        }
+
+        /* Status chip — parallelogram */
+        .status-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            padding: 5px 18px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--dim);
+            transition: all 0.3s;
+        }
+        .sdot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--faint);
+            transition: all 0.3s;
+        }
+        .app.active .status-chip {
+            color: var(--red-hi);
+            border-color: rgba(232,33,46,0.3);
+            background: rgba(204,26,34,0.1);
+        }
+        .app.active .sdot {
+            background: var(--red-hi);
+            box-shadow: 0 0 7px var(--red-hi);
+            animation: dot-blink 1s step-end infinite;
+        }
+        @keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+
+        /* Video box */
+        .video-box {
+            flex: 1;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+        /* P5 corner notch — top left */
+        .video-box::before {
+            content: '';
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 28px 28px 0 0;
+            border-color: var(--red-hi) transparent transparent transparent;
+            z-index: 3; pointer-events: none;
+        }
+        /* amber notch — bottom right */
+        .video-box::after {
+            content: '';
+            position: absolute; bottom: 0; right: 0;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 0 0 20px 20px;
+            border-color: transparent transparent var(--amber) transparent;
+            z-index: 3; pointer-events: none;
+        }
+        #player { width: 100%; height: 100%; border: none; display: block; }
+
+        /* Video buttons */
+        .vid-row {
+            display: flex; gap: 8px; flex-shrink: 0;
+        }
+        .vid-btn {
+            flex: 1;
+            padding: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            clip-path: polygon(7px 0, 100% 0, calc(100% - 7px) 100%, 0 100%);
+            color: var(--dim);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .vid-btn:hover { color: var(--white); background: #222; }
+        .vid-btn:active { color: var(--red-hi); }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           RIGHT PANEL
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        .panel {
+            width: 300px;
+            flex-shrink: 0;
+            background: var(--surface);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dramatic diagonal header stripe */
+        .panel-head {
+            flex-shrink: 0;
+            background: var(--red);
+            height: 44px;
+            clip-path: polygon(0 0, 100% 0, 100% 50%, 0 100%);
+            display: flex;
+            align-items: flex-start;
+            padding: 8px 18px 0;
+            position: relative;
+        }
+        /* Amber thin line along bottom of header */
+        .panel-head::after {
+            content: '';
+            position: absolute;
+            bottom: 10px; left: 0; right: 25%;
+            height: 1px;
+            background: var(--gold);
+            opacity: 0.5;
+        }
+        .panel-head-text {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 15px;
+            letter-spacing: 5px;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .panel-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 18px 20px 18px;
+            gap: 0;
+            overflow: hidden;
+        }
+
+        /* Section label */
+        .p5-label {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: 10px;
+        }
+        .p5-bar {
+            width: 3px; height: 14px;
+            background: linear-gradient(to bottom, var(--red-hi), var(--amber));
+            flex-shrink: 0;
+        }
+        .p5-text {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--dim);
+        }
+
+        /* ── SETS ── */
+        .sets-block {
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sets-row { display: flex; align-items: center; justify-content: space-between; }
+        .set-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 80px;
+            line-height: 1;
+            color: var(--white);
+            letter-spacing: 2px;
+            position: relative;
+        }
+        /* Gold/amber underline on number */
+        .set-num::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(to right, var(--red-hi), var(--amber));
+            transform: skewX(-10deg);
+        }
+
+        .set-btns { display: flex; flex-direction: column; gap: 8px; }
+        .set-btn {
+            width: 44px; height: 44px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+            color: var(--white);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 26px;
+            cursor: pointer;
             display: flex; align-items: center; justify-content: center;
-            transform: translateZ(0); /* Stability hack */
+            transition: all 0.15s;
+            line-height: 1;
+        }
+        .set-btn:hover {
+            background: var(--red);
+            border-color: var(--red);
+        }
+        .set-btn:active { transform: scale(0.9); }
+
+        /* ── TIMER ── */
+        .timer-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .video-container { 
-            width: 100%; height: 100%; max-height: 90vh;
-            border-radius: 15px; overflow: hidden; 
-            border: 1px solid var(--border); background: #000; 
+        .timer-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+        /* P5 bracket corners on timer */
+        .timer-display::before, .timer-display::after {
+            content: '';
+            position: absolute;
+            top: 50%; transform: translateY(-50%);
+            width: 10px; height: 52%;
+            border-top: 2px solid rgba(204,26,34,0.4);
+            border-bottom: 2px solid rgba(204,26,34,0.4);
+            transition: border-color 0.3s;
+        }
+        .timer-display::before { left: 2px; border-left: 2px solid rgba(204,26,34,0.4); }
+        .timer-display::after  { right: 2px; border-right: 2px solid rgba(204,26,34,0.4); }
+        .app.active .timer-display::before,
+        .app.active .timer-display::after {
+            border-color: rgba(232,33,46,0.7);
         }
 
-        #player { width: 100%; height: 100%; border: none; }
+        .t-inp {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 86px;
+            line-height: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--white);
+            width: 108px;
+            text-align: center;
+            padding: 0;
+            letter-spacing: 2px;
+        }
+        .t-sep {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 76px;
+            line-height: 1;
+            color: var(--faint);
+            padding-bottom: 6px;
+            flex-shrink: 0;
+            transition: color 0.3s;
+        }
+        .app.active .t-sep {
+            color: var(--red-hi);
+            animation: colon-blink 1s step-end infinite;
+        }
+        @keyframes colon-blink { 0%,100%{opacity:1} 50%{opacity:0.07} }
 
-        .timer-card { 
-            flex: 1; background: #080808; display: flex; 
-            flex-direction: column; align-items: center; justify-content: center; 
-            border-left: 1px solid var(--border); padding: 20px; 
-            min-width: 320px; box-sizing: border-box;
+        /* Presets */
+        .presets {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+        }
+        .preset {
+            padding: 7px 2px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%);
+            color: var(--dim);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s;
+        }
+        .preset:hover { color: var(--white); }
+        .preset.on {
+            background: var(--red);
+            border-color: var(--red-hi);
+            color: var(--white);
         }
 
-        .set-widget {
-            background: #111; padding: 8px 20px; border-radius: 100px; 
-            display: flex; align-items: center; gap: 12px; border: 1px solid var(--border); 
-            margin-bottom: 20px;
+        /* ── ACTIONS ── */
+        .actions { display: flex; flex-direction: column; gap: 7px; }
+
+        /* Main button — the Persona "All Out" style */
+        .btn-main {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 22px;
+            letter-spacing: 4px;
+            cursor: pointer;
+            background: linear-gradient(95deg, var(--red) 0%, var(--red-hi) 100%);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        /* Shine sweep on hover */
+        .btn-main::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100px;
+            width: 70px; height: 100%;
+            background: rgba(255,255,255,0.15);
+            transform: skewX(-15deg);
+            transition: left 0.5s ease;
+        }
+        .btn-main:hover::before { left: 120%; }
+        /* Amber bottom edge */
+        .btn-main::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 8%; right: 8%;
+            height: 2px;
+            background: var(--gold);
+            opacity: 0.6;
+        }
+        .btn-main:active { opacity: 0.85; transform: scale(0.99); }
+        .app.active .btn-main {
+            background: transparent;
+            color: var(--red-hi);
+            box-shadow: inset 0 0 0 2px var(--red);
+        }
+        .app.active .btn-main::after { display: none; }
+
+        .btn-row { display: flex; gap: 6px; }
+        .btn-sec {
+            flex: 1;
+            padding: 10px 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+            color: var(--dim);
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-sec:hover { color: var(--white); background: #222; }
+        .btn-sec:active { color: var(--red-hi); }
+
+        .bg-note {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: #333;
+            min-height: 14px;
+            transition: color 0.3s;
+        }
+        .bg-note.lit { color: var(--gold); }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           DONE OVERLAY — full Persona drama
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        #overlay {
+            position: fixed; inset: 0;
+            background: var(--red);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        #overlay.show {
+            display: flex;
+            animation: ov-wipe 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        @keyframes ov-wipe {
+            from { clip-path: polygon(0 50%, 100% 50%, 100% 50%, 0 50%); }
+            to   { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
         }
 
-        .set-count { font-size: 24px; font-weight: 900; color: var(--green); min-width: 30px; text-align: center; }
-        .set-btn { 
-            background: #1a1a1a; border: 1px solid #333; color: white; 
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center;
+        /* diagonal stripe pattern on overlay */
+        #overlay::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: repeating-linear-gradient(
+                -28deg,
+                transparent 0, transparent 48px,
+                rgba(0,0,0,0.08) 48px, rgba(0,0,0,0.08) 49px
+            );
+            pointer-events: none;
         }
 
-        .timer-display { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; width: 100%; }
-        .time-unit {
-            background: none; border: none; color: white; font-size: 56px; 
-            font-weight: 900; width: 75px; text-align: center; outline: none; 
-            font-variant-numeric: tabular-nums; padding: 0;
-        }
-        .colon { font-size: 40px; font-weight: 900; color: #222; margin: 0 2px; }
-        .active .colon { color: var(--red); text-shadow: 0 0 10px var(--red); }
-
-        .btn-box { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; }
-        button.main-action { 
-            padding: 16px; border-radius: 100px; border: 1px solid #333; 
-            background: #111; color: #fff; font-weight: 800; font-size: 10px; 
-            text-transform: uppercase; letter-spacing: 1px; cursor: pointer; 
-        }
-        .start-btn { background: var(--green) !important; color: #000 !important; border: none !important; }
-        .active .start-btn { background: var(--red) !important; color: white !important; }
-
-        @media (max-width: 600px) and (orientation: portrait) {
-            .app-container { flex-direction: column; }
-            .video-wrapper { flex: 0 0 35%; padding: 10px; }
-            .timer-card { flex: 1; border-left: none; border-top: 1px solid var(--border); width: 100%; padding: 10px; }
-            .time-unit { font-size: 52px; width: 70px; }
+        /* Gold edge bars on overlay */
+        #overlay::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(to right, var(--gold), transparent);
+            pointer-events: none;
         }
 
-        #overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: var(--red); color: white; display: none; 
-            flex-direction: column; align-items: center; justify-content: center; z-index: 9999; 
+        .ov-tag {
+            font-size: 12px; font-weight: 700;
+            letter-spacing: 6px; text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 8px;
+            animation: ov-rise 0.4s 0.1s both;
+        }
+        .ov-main {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(92px, 18vw, 158px);
+            line-height: 0.88;
+            color: white;
+            letter-spacing: 6px;
+            text-align: center;
+            text-shadow: 6px 6px 0 rgba(0,0,0,0.2);
+            animation: ov-rise 0.4s 0.12s both;
+        }
+        /* Gold underline on overlay title */
+        .ov-underline {
+            width: 50%;
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--gold), transparent);
+            margin: 16px auto;
+            animation: ov-rise 0.4s 0.2s both;
+        }
+        .ov-sets {
+            font-size: 15px; font-weight: 700;
+            letter-spacing: 4px; text-transform: uppercase;
+            color: rgba(255,255,255,0.65);
+            animation: ov-rise 0.4s 0.24s both;
+        }
+        .ov-sets strong { color: white; font-weight: 900; }
+        .ov-dismiss {
+            margin-top: 28px;
+            font-size: 11px; font-weight: 700;
+            letter-spacing: 3px; text-transform: uppercase;
+            color: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.18);
+            padding: 8px 22px;
+            animation: ov-rise 0.4s 0.3s both;
+        }
+        @keyframes ov-rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+           MOBILE
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+        @media (max-width: 640px) {
+            .edge-bar { width: 100%; height: 5px; position: fixed; top: 0; left: 0; bottom: auto; }
+            .edge-bar::after { width: 60px; height: 5px; bottom: auto; top: 0; left: 0;
+                animation: bar-shimmer-h 3s ease-in-out infinite; }
+            @keyframes bar-shimmer-h {
+                0%   { left: -60px; opacity: 0; }
+                10%  { opacity: 1; }
+                90%  { opacity: 1; }
+                100% { left: 100%; opacity: 0; }
+            }
+            .app { flex-direction: column; padding-left: 0; padding-top: 5px; }
+            .video-col { padding: 10px 12px 0; flex: 0 0 auto; gap: 8px; }
+            .video-box { aspect-ratio: 16/9; flex: none; }
+            .vid-row { display: none; }
+            .panel { width: 100%; border-left: none; border-top: 1px solid var(--border); }
+            .panel-head { display: none; }
+            .panel-body {
+                flex-direction: row; flex-wrap: wrap;
+                padding: 12px 14px 14px; align-items: flex-start;
+            }
+            .sets-block {
+                border-bottom: none; border-right: 1px solid var(--border);
+                padding-bottom: 0; padding-right: 14px;
+                margin-bottom: 0; margin-right: 14px; flex-shrink: 0;
+            }
+            .set-num { font-size: 60px; }
+            .timer-block {
+                flex: 1; min-width: 140px;
+                border-bottom: none; padding-bottom: 0; margin-bottom: 0;
+                justify-content: flex-start; padding-top: 2px;
+            }
+            .t-inp { font-size: 62px; width: 80px; }
+            .t-sep { font-size: 54px; }
+            .timer-display::before, .timer-display::after { display: none; }
+            .actions { width: 100%; margin-top: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container" id="main-ui">
-        <div class="video-wrapper">
-            <div class="video-container"><div id="player"></div></div>
+<div class="bg-layer"></div>
+<div class="edge-bar"></div>
+
+<div class="app" id="app">
+
+    <!-- VIDEO -->
+    <div class="video-col">
+        <div class="topbar">
+            <div class="logo">
+                <div class="logo-tag">REST</div>
+                <div class="logo-rest">&nbsp;// STATION</div>
+            </div>
+            <div class="status-chip">
+                <div class="sdot"></div>
+                <span id="statusTxt">STANDBY</span>
+            </div>
         </div>
-        <div class="timer-card">
-            <div class="set-widget">
-                <button class="set-btn" onclick="updateSet(-1)">−</button>
-                <span id="setCount" class="set-count">0</span>
-                <button class="set-btn" onclick="updateSet(1)">+</button>
-            </div>
-            <div class="timer-display">
-                <input type="text" class="time-unit" id="m" value="02" maxlength="2">
-                <span class="colon">:</span>
-                <input type="text" class="time-unit" id="s" value="00" maxlength="2">
-            </div>
-            <div class="btn-box">
-                <button class="main-action start-btn" id="mainBtn" onclick="toggleTimer()">Start Rest</button>
-                <button class="main-action" onclick="resetTimer()">Reset Timer</button>
-                <button class="main-action" style="background:transparent; color:#555; font-size:8px; border:1px solid #222;" onclick="shuffleVideo()">Next Video</button>
-            </div>
+
+        <div class="video-box">
+            <div id="player"></div>
+        </div>
+
+        <div class="vid-row">
+            <button class="vid-btn" onclick="shuffleVideo()">⟳ &nbsp;Next Video</button>
+            <button class="vid-btn" onclick="resetTimer()">↺ &nbsp;Reset</button>
         </div>
     </div>
 
-    <div id="overlay" onclick="closeAlert()">
-        <h1 style="font-size: 60px; font-weight: 900; margin: 0;">DONE</h1>
-        <p style="font-weight: 800; letter-spacing: 5px; opacity: 0.8; margin-top: 10px;">TAP TO DISMISS</p>
+    <!-- PANEL -->
+    <div class="panel">
+        <div class="panel-head">
+            <span class="panel-head-text">WORKOUT TRACKER</span>
+        </div>
+
+        <div class="panel-body">
+
+            <!-- Sets -->
+            <div class="sets-block">
+                <div class="p5-label">
+                    <div class="p5-bar"></div>
+                    <span class="p5-text">Sets Done</span>
+                </div>
+                <div class="sets-row">
+                    <div class="set-num" id="setCount">00</div>
+                    <div class="set-btns">
+                        <button class="set-btn" onclick="updateSet(1)">+</button>
+                        <button class="set-btn" onclick="updateSet(-1)">−</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer -->
+            <div class="timer-block">
+                <div class="p5-label">
+                    <div class="p5-bar"></div>
+                    <span class="p5-text">Rest Timer</span>
+                </div>
+                <div class="timer-display">
+                    <input class="t-inp" id="m" type="text" value="02" maxlength="2"
+                        inputmode="numeric" onfocus="if(!running) this.select()">
+                    <span class="t-sep">:</span>
+                    <input class="t-inp" id="s" type="text" value="00" maxlength="2"
+                        inputmode="numeric" onfocus="if(!running) this.select()">
+                </div>
+                <div class="presets">
+                    <button class="preset" onclick="setPreset(60,this)">1:00</button>
+                    <button class="preset" onclick="setPreset(90,this)">1:30</button>
+                    <button class="preset on" onclick="setPreset(120,this)">2:00</button>
+                    <button class="preset" onclick="setPreset(180,this)">3:00</button>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn-main" id="mainBtn" onclick="toggleTimer()">START REST</button>
+                <div class="btn-row">
+                    <button class="btn-sec" onclick="resetTimer()">↺ Reset</button>
+                    <button class="btn-sec" onclick="shuffleVideo()">⟳ Next Video</button>
+                </div>
+                <div class="bg-note" id="bgNote">timer runs while tabbed out</div>
+            </div>
+
+        </div>
     </div>
+</div>
 
-    <script>
-        let timer, running = false, secondsLeft = 120, sets = parseInt(localStorage.getItem('restSets')) || 0;
-        let player;
-        
-        document.getElementById('setCount').textContent = sets;
+<!-- DONE OVERLAY -->
+<div id="overlay" onclick="closeOverlay()">
+    <div class="ov-tag">Rest Complete</div>
+    <div class="ov-main">ALL OUT</div>
+    <div class="ov-underline"></div>
+    <div class="ov-sets" id="ovSets">Sets completed: <strong>1</strong></div>
+    <div class="ov-dismiss">Tap to Dismiss</div>
+</div>
 
-        const playlistIDs = ['UUiYcA0gJzg855iSKMrX3oHg', 'UU7_YxT-KID8kRbqZo7MyscQ'];
+<script>
+    /* ─── STATE ─── */
+    let running = false, totalSeconds = 120, endTime = null, rafId = null;
+    let sets = parseInt(localStorage.getItem('restSets') || '0');
+    let player;
+    renderSetCount();
 
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    /* ───────────────────────────────────────
+       YOUTUBE — Gemini's original logic
+    ─────────────────────────────────────── */
+    const playlistIDs = ['UUiYcA0gJzg855iSKMrX3oHg', 'UU7_YxT-KID8kRbqZo7MyscQ'];
 
-        function onYouTubeIframeAPIReady() {
-            const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
-            player = new YT.Player('player', {
-                height: '100%', width: '100%',
-                playerVars: {
-                    'listType': 'playlist', 'list': randomPlaylist,
-                    'autoplay': 1, 'index': Math.floor(Math.random() * 50),
-                    'modestbranding': 1, 'origin': window.location.origin
-                },
-                events: { 
-                    'onReady': (e) => {
-                        e.target.setShuffle(true);
-                        // Suggest high quality once only to prevent refresh loops
-                        e.target.setPlaybackQuality('hd1080'); 
-                    },
-                    'onError': () => shuffleVideo() 
-                }
-            });
-        }
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        function shuffleVideo() {
-            if (player && player.loadPlaylist) {
-                const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
-                player.loadPlaylist({ list: randomPlaylist, listType: 'playlist', index: Math.floor(Math.random() * 50) });
+    function onYouTubeIframeAPIReady() {
+        const randomPlaylist = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+        player = new YT.Player('player', {
+            height: '100%', width: '100%',
+            playerVars: {
+                'listType': 'playlist', 'list': randomPlaylist,
+                'autoplay': 1, 'index': Math.floor(Math.random() * 50),
+                'modestbranding': 1, 'origin': window.location.origin
+            },
+            events: {
+                'onReady': (e) => { e.target.setShuffle(true); },
+                'onError': () => shuffleVideo()
             }
-        }
+        });
+    }
 
-        function updateSet(val) { 
-            sets = Math.max(0, sets + val); 
-            document.getElementById('setCount').textContent = sets;
-            localStorage.setItem('restSets', sets);
+    function shuffleVideo() {
+        if (player && player.loadPlaylist) {
+            const list = playlistIDs[Math.floor(Math.random() * playlistIDs.length)];
+            player.loadPlaylist({ list, listType: 'playlist', index: Math.floor(Math.random() * 50) });
         }
+    }
 
-        function toggleTimer() {
-            if (running) {
-                clearInterval(timer); running = false;
-                document.getElementById('mainBtn').textContent = "Resume Rest";
-                document.getElementById('main-ui').classList.remove('active');
-            } else {
-                let m = parseInt(document.getElementById('m').value) || 0;
-                let s = parseInt(document.getElementById('s').value) || 0;
-                secondsLeft = (m * 60) + s;
-                running = true;
-                document.getElementById('mainBtn').textContent = "Pause Rest";
-                document.getElementById('main-ui').classList.add('active');
-                timer = setInterval(tick, 1000);
-            }
+    /* ─── SETS ─── */
+    function updateSet(val) {
+        sets = Math.max(0, sets + val);
+        renderSetCount();
+        localStorage.setItem('restSets', sets);
+    }
+    function renderSetCount() {
+        document.getElementById('setCount').textContent = String(sets).padStart(2, '0');
+    }
+
+    /* ─── PRESETS ─── */
+    function setPreset(secs, btn) {
+        if (running) return;
+        totalSeconds = secs;
+        renderTime(secs);
+        document.querySelectorAll('.preset').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+    }
+
+    /* ─── TIMER — timestamp-based, survives tab switch ─── */
+    function toggleTimer() {
+        if (running) {
+            cancelAnimationFrame(rafId);
+            running = false;
+            const rem = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            totalSeconds = rem;
+            renderTime(rem);
+            document.getElementById('mainBtn').textContent = 'RESUME REST';
+            document.getElementById('statusTxt').textContent = 'PAUSED';
+            document.getElementById('app').classList.remove('active');
+        } else {
+            const m = parseInt(document.getElementById('m').value) || 0;
+            const s = parseInt(document.getElementById('s').value) || 0;
+            const secs = m * 60 + s;
+            if (secs <= 0) return;
+            totalSeconds = secs;
+            endTime = Date.now() + secs * 1000;
+            running = true;
+            document.getElementById('mainBtn').textContent = 'PAUSE';
+            document.getElementById('statusTxt').textContent = 'RESTING';
+            document.getElementById('app').classList.add('active');
+            tick();
         }
+    }
 
-        function tick() {
-            if (secondsLeft <= 0) { 
-                clearInterval(timer); running = false; 
-                document.getElementById('overlay').style.display = 'flex'; 
-                updateSet(1); return; 
-            }
-            secondsLeft--;
-            document.getElementById('m').value = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-            document.getElementById('s').value = (secondsLeft % 60).toString().padStart(2, '0');
+    let lastDisplayed = -1;
+    function tick() {
+        if (!running) return;
+        const rem = Math.ceil((endTime - Date.now()) / 1000);
+        if (rem <= 0) {
+            running = false;
+            renderTime(0);
+            document.getElementById('app').classList.remove('active');
+            document.getElementById('mainBtn').textContent = 'START REST';
+            document.getElementById('statusTxt').textContent = 'STANDBY';
+            lastDisplayed = -1;
+            updateSet(1);
+            document.getElementById('ovSets').innerHTML = `Sets completed: <strong>${sets}</strong>`;
+            document.getElementById('overlay').classList.add('show');
+            return;
         }
-
-        function closeAlert() { document.getElementById('overlay').style.display = 'none'; resetTimer(); }
-
-        function resetTimer() {
-            clearInterval(timer); running = false;
-            document.getElementById('main-ui').classList.remove('active');
-            document.getElementById('mainBtn').textContent = "Start Rest";
-            document.getElementById('m').value = "02"; document.getElementById('s').value = "00";
+        // Only update the DOM when the second actually changes — no wasted renders
+        if (rem !== lastDisplayed) {
+            lastDisplayed = rem;
+            renderTime(rem);
         }
-    </script>
+        rafId = requestAnimationFrame(tick);
+    }
+
+    function renderTime(secs) {
+        document.getElementById('m').value = String(Math.floor(secs / 60)).padStart(2, '0');
+        document.getElementById('s').value = String(secs % 60).padStart(2, '0');
+    }
+
+    function resetTimer() {
+        cancelAnimationFrame(rafId);
+        running = false; endTime = null;
+        renderTime(totalSeconds);
+        document.getElementById('mainBtn').textContent = 'START REST';
+        document.getElementById('statusTxt').textContent = 'STANDBY';
+        document.getElementById('app').classList.remove('active');
+    }
+
+    function closeOverlay() {
+        document.getElementById('overlay').classList.remove('show');
+        resetTimer();
+    }
+
+    /* ─── Tab visibility ─── */
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && running) {
+            const n = document.getElementById('bgNote');
+            n.textContent = '✓ timer kept running';
+            n.classList.add('lit');
+            setTimeout(() => { n.textContent = 'timer runs while tabbed out'; n.classList.remove('lit'); }, 2500);
+        }
+    });
+</script>
 </body>
 </html>
